@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タロット1枚引き占い</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      background: url('img/stars.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Cormorant Garamond', serif;
+      text-align: center;
+      padding: 2em;
+      color: #fffbe8;
+    }
+    h1 {
+      font-size: 2em;
+      color: #f6e8ff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+    }
+    button {
+      padding: 1em 2em;
+      font-size: 1.2em;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid #fffbe8;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 1em 0 1em 0;
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.093);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.7); /* 🔧 テキストを見やすく */
+      font-weight: bold; /* 🔧 太字で視認性アップ */
+    }
+    button:hover {
+      background-color: rgba(255, 255, 255, 0.196);
+    }
+    .card-container {
+      perspective: 1000px;
+      width: 220px;
+      margin: 1em auto 2em auto;
+      position: relative;
+      height: 340px;
+    }
+    .card {
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.8s;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .card.flip {
+      transform: rotateY(180deg);
+    }
+    .card.reversed .card-front img {
+      transform: rotate(180deg);
+    }
+    .card-face {
+      position: absolute;
+      backface-visibility: hidden;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+    }
+    .card-face img {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      border-radius: 8px;
+    }
+    .card-front {
+      transform: rotateY(180deg);
+      z-index: 2;
+    }
+    .card-back {
+      z-index: 1;
+    }
+    #cardName {
+      font-size: 1.6em;
+      font-weight: bold;
+      color: #ffeccc;
+      margin-top: 2em;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+    #cardMeaning {
+      font-size: 1.2em;
+      margin-top: 1em;
+      color: #fffaee;
+      padding: 0 1em;
+      line-height: 1.6;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>今のあなたに必要なメッセージ</h1>
+  <button id="drawBtn">カードを引く</button>
+
+  <div class="card-container">
+    <div class="card" id="tarotCard">
+      <div class="card-face card-back">
+        <img src="img/back.png" alt="カード裏面">
+      </div>
+      <div class="card-face card-front">
+        <img id="cardImage" src="" alt="" aria-hidden="true">
+      </div>
+    </div>
+  </div>
+
+  <div id="cardName"></div>
+  <div id="cardMeaning"></div>
+
+  <script>
+  $(function () {
+    const cards = [
+      {
+        name: "愚者（The Fool）",
+        image: "img/fool.png",
+        meanings: {
+          upright: "新しい可能性に満ちた日。冒険心がカギ。",
+          reversed: "固定観念から自由になるチャンス。未知の世界に目を向けて。"
+        }
+      },
+      {
+        name: "魔術師（The Magician）",
+        image: "img/magician.png",
+        meanings: {
+          upright: "自分の力を信じて。チャンスを活かせる日。",
+          reversed: "本当の自分の力を見直すタイミング。集中すれば道は開ける。"
+        }
+      },
+      {
+        name: "女教皇（The High Priestess）",
+        image: "img/priestess.png",
+        meanings: {
+          upright: "直感が冴える日。焦らず心の声に耳を傾けて。",
+          reversed: "外に向く意識を内側に戻せば、本来の自分に出会える日。"
+        }
+      },
+      {
+        name: "女帝（The Empress）",
+        image: "img/empress.png",
+        meanings: {
+          upright: "豊かさや愛情に包まれる日。育てる力が光る。",
+          reversed: "自分を甘やかす時間も大切。優しさはまず自分から。"
+        }
+      },
+      {
+        name: "皇帝（The Emperor）",
+        image: "img/emperor.png",
+        meanings: {
+          upright: "責任感とリーダーシップが試される日。",
+          reversed: "柔軟さを取り入れることで新たな安定が得られそう。"
+        }
+      },
+      {
+        name: "教皇（The Hierophant）",
+        image: "img/hierophant.png",
+        meanings: {
+          upright: "伝統やルールを大切にすると安定します。",
+          reversed: "自分らしい生き方を模索する絶好のタイミング。"
+        }
+      },
+      {
+        name: "恋人（The Lovers）",
+        image: "img/lovers.png",
+        meanings: {
+          upright: "大切な人との絆が深まる日。選択がカギ。",
+          reversed: "本当に大切なものを選び取る勇気が芽生える日。"
+        }
+      },
+      {
+        name: "戦車（The Chariot）",
+        image: "img/chariot.png",
+        meanings: {
+          upright: "行動あるのみ！自信と勢いで突き進め。",
+          reversed: "一旦立ち止まることで、本来の進むべき道が明確に。"
+        }
+      },
+      {
+        name: "力（Strength）",
+        image: "img/strength.png",
+        meanings: {
+          upright: "優しさと忍耐が真の力となる日。",
+          reversed: "素直な感情もあなたの強さの一部。自分を受け入れて。"
+        }
+      },
+      {
+        name: "隠者（The Hermit）",
+        image: "img/hermit.png",
+        meanings: {
+          upright: "静かな時間が気づきをくれる。内面と向き合って。",
+          reversed: "内省が未来へのヒントに。自分の軸を見つけられる日。"
+        }
+      },
+      {
+        name: "運命の輪（Wheel of Fortune）",
+        image: "img/fortune.png",
+        meanings: {
+          upright: "運命が動き出す。チャンスに乗るとき。",
+          reversed: "流れを受け入れることで、次のチャンスが近づいてきます。"
+        }
+      },
+      {
+        name: "正義（Justice）",
+        image: "img/justice.png",
+        meanings: {
+          upright: "冷静な判断が求められる日。公平に考えて。",
+          reversed: "感情ではなく、本当の想いに正直になれる日。"
+        }
+      },
+      {
+        name: "吊るされた男（The Hanged Man）",
+        image: "img/hanged.png",
+        meanings: {
+          upright: "今は待つとき。視点を変えることで突破口が見える。",
+          reversed: "今までの努力が報われ始める前触れ。手放しの準備を。"
+        }
+      },
+      {
+        name: "死神（Death）",
+        image: "img/death.png",
+        meanings: {
+          upright: "終わりは新たな始まり。古いものを手放して。",
+          reversed: "ゆっくりとした変化の中にこそ、再出発の芽が隠れている。"
+        }
+      },
+      {
+        name: "節制（Temperance）",
+        image: "img/temperance.png",
+        meanings: {
+          upright: "バランスと調和がカギ。焦らず自然体で。",
+          reversed: "あなたのペースを取り戻すとき。小さな整えが吉。"
+        }
+      },
+      {
+        name: "悪魔（The Devil）",
+        image: "img/devil.png",
+        meanings: {
+          upright: "誘惑や依存に注意。執着から自由になる意志を。",
+          reversed: "心の解放が進む兆し。少しずつ軽やかな選択を。"
+        }
+      },
+      {
+        name: "塔（The Tower）",
+        image: "img/tower.png",
+        meanings: {
+          upright: "衝撃的な出来事があるかも。でも再生のチャンス。",
+          reversed: "予想外の出来事がリセットのきっかけに。新たな基盤作りの時。"
+        }
+      },
+      {
+        name: "星（The Star）",
+        image: "img/star.png",
+        meanings: {
+          upright: "希望の光が見える日。理想を信じて。",
+          reversed: "心の中の小さな希望に気づける日。静かな癒しの時間を。"
+        }
+      },
+      {
+        name: "月（The Moon）",
+        image: "img/moon.png",
+        meanings: {
+          upright: "感情や直感が揺れる日。冷静に見極めて。",
+          reversed: "迷いが晴れつつあるサイン。直感が再び冴えてきます。"
+        }
+      },
+      {
+        name: "太陽（The Sun）",
+        image: "img/sun.png",
+        meanings: {
+          upright: "喜びと成功の1日。自信を持って行動して。",
+          reversed: "小さな幸せを見つける目を持てば、大きな幸運の入口に。"
+        }
+      },
+      {
+        name: "審判（Judgement）",
+        image: "img/judgement.png",
+        meanings: {
+          upright: "過去を振り返り、成長へつなげるとき。",
+          reversed: "心の整理がついて、次のステップに向かう準備が整いはじめる。"
+        }
+      },
+      {
+        name: "世界（The World）",
+        image: "img/world.png",
+        meanings: {
+          upright: "物事が完成へ向かう。達成感を味わえる日。",
+          reversed: "あと少しの調整で大きな成果に。諦めないことが成功のカギ。"
+        }
+      }
+    ];
+
+    $("#drawBtn").on("click", function () {
+      const card = cards[Math.floor(Math.random() * cards.length)];
+      const isUpright = Math.random() < 0.5;
+
+      const $card = $("#tarotCard");
+
+      $("#cardImage").attr("src", card.image).attr("alt", "");
+      $("#cardName").text(card.name + (isUpright ? "（正位置）" : "（逆位置）"));
+      $("#cardMeaning").text(isUpright ? card.meanings.upright : card.meanings.reversed);
+
+      $card.removeClass("reversed");
+      void $card[0].offsetWidth;
+      $card.addClass("flip");
+      if (!isUpright) $card.addClass("reversed");
+
+      setTimeout(() => {
+        $card.removeClass("flip reversed");
+        $("#cardImage").attr("src", "").attr("alt", "");
+        $("#cardName").text("");
+        $("#cardMeaning").text("");
+      }, 5000);
+    });
+  });
+</script>
+
+</body>
+</html>
+
+

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <script src="js/jquery-2.1.3.min.js"></script>
+  <link rel="stylesheet" href="css/sample.css">
+  <title>じゃんけん</title>
+  <style>
+    #animation_area img {
+      width: 200px;
+      height: auto;
+      display: block;
+      margin: 10px auto;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>じゃんけん</h1>
+</header>
+
+<main>
+  <ul>
+    <li id="gu_btn">グー</li>
+    <li id="cho_btn">チョキ</li>
+    <li id="par_btn">パー</li>
+  </ul>
+  <div>コンピュータの出した手は？「<span id="pc_hands">なに？</span>」</div>
+  <div id="judgment">勝ち</div>
+  <div id="animation_area"></div>
+</main>
+
+<footer></footer>
+
+<script>
+$(function(){
+  const hands = ["グー", "チョキ", "パー"];
+
+  function judge(user, pc){
+    if(user === pc){
+      return "あいこ";
+    } else if(
+      (user === "グー" && pc === "チョキ") ||
+      (user === "チョキ" && pc === "パー") ||
+      (user === "パー" && pc === "グー")
+    ){
+      return "勝ち";
+    } else {
+      return "負け";
+    }
+  }
+
+  function showAnimation(result){
+    let imgSrc = "";
+    if(result === "勝ち"){
+      imgSrc = "img/kachi.gif";
+    } else if(result === "あいこ"){
+      imgSrc = "img/fire.gif";
+    } else if(result === "負け"){
+      imgSrc = "img/pien.gif";
+    }
+
+    const imgTag = `<img src="${imgSrc}" alt="${result}アニメ">`;
+    $("#animation_area").html(imgTag);
+  }
+
+  $("#gu_btn, #cho_btn, #par_btn").on("click", function(){
+    let user_hand = "";
+    if(this.id === "gu_btn") user_hand = "グー";
+    if(this.id === "cho_btn") user_hand = "チョキ";
+    if(this.id === "par_btn") user_hand = "パー";
+
+    const pc_hand = hands[Math.floor(Math.random() * 3)];
+    $("#pc_hands").text(pc_hand);
+
+    const result = judge(user_hand, pc_hand);
+    $("#judgment").text(result);
+
+    showAnimation(result);
+  });
+});
+</script>
+
+</body>
+</html>
